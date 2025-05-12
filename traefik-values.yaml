@@ -1,0 +1,80 @@
+additionalArguments:
+  - "--entrypoints.web.address=:80"
+  - "--entrypoints.websecure.address=:443"
+  - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
+  - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
+  - "--certificatesresolvers.letsencrypt.acme.email=ajaykumar.ragavan@lmnas.com"
+  - "--certificatesresolvers.letsencrypt.acme.storage=/data/acme.json"
+  - "--certificatesresolvers.letsencrypt.acme.tlschallenge=true"
+  - "--accesslog=true"
+  - "--log.level=INFO"
+  - "--api.dashboard=true"
+  - "--entrypoints.traefik.address=:8484"
+
+ports:
+  web:
+    port: 80
+    expose:
+      enabled: true
+  websecure:
+    port: 443
+    expose:
+      enabled: true
+    tls:
+      enabled: true
+      certResolver: letsencrypt
+  traefik:
+    port: 8484
+    expose:
+      enabled: true
+
+providers:
+  kubernetesCRD:
+    allowCrossNamespace: true
+  kubernetesIngress:
+    publishedService:
+      enabled: true
+
+ingressClass:
+  enabled: true
+  isDefaultClass: true
+
+service:
+  enabled: true
+  type: LoadBalancer
+  ports:
+    - name: http
+      port: 80
+      targetPort: web
+    - name: https
+      port: 443
+      targetPort: websecure
+    - name: traefik
+      port: 8484
+      targetPort: traefik
+
+persistence:
+  enabled: true
+  name: acme-storage
+  existingClaim: traefik-pvc
+  accessModes:
+    - ReadWriteMany
+  path: /data
+  storageClass: local-path
+
+additionalContainers:
+  - name: volume-permissions
+    image: busybox:latest
+    command:
+      - /bin/sh
+      - -c
+      - |
+        touch /data/acme.json \
+        && chmod 600 /data/acme.json \
+        && chown 65532:65532 /data/acme.json
+    volumeMounts:
+      - name: acme-storage
+        mountPath: /data
+
+nodeSelector:
+  region: eur1

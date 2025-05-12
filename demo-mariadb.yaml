@@ -1,0 +1,99 @@
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: lenshxm-site-pv
+spec:
+  storageClassName: localpath
+  capacity:
+    storage: 15Gi
+  accessModes:
+    - ReadWriteMany
+  hostPath:
+    path: /home/ajaykumarpmk/nfsdisk/lenshxm-mariadb
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: lenshxm-mariadb-pvc
+spec:
+  storageClassName: localpath
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 1.5Gi
+  volumeName: lenshxm-site-pv
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lenshxm-mariadb
+  labels:
+    app: lenshxm-mariadb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lenshxm-mariadb
+  template:
+    metadata:
+      labels:
+        app: lenshxm-mariadb
+    spec:
+      affinity: 
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              preference:
+                matchExpressions:
+                  - key: region
+                    operator: In
+                    values:
+                      - eur2
+            - weight: 50
+              preference:
+                matchExpressions:
+                  - key: region
+                    operator: In
+                    values:
+                      - amr
+            - weight: 10
+              preference:
+                matchExpressions:
+                  - key: region
+                    operator: In
+                    values:
+                      - eur1
+      containers:
+        - name: mariadb
+          image: mariadb:10.6
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              value: "admin"
+          ports:
+            - containerPort: 3306
+          args:
+            - "--character-set-server=utf8mb4"
+            - "--collation-server=utf8mb4_unicode_ci"
+            - "--skip-character-set-client-handshake"
+            - "--skip-innodb-read-only-compressed"
+          volumeMounts:
+            - mountPath: "/var/lib/mysql"
+              name: mariadb-storage
+      volumes:
+        - name: mariadb-storage
+          persistentVolumeClaim:
+            claimName: lenshxm-mariadb-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: lenshxm-mariadb
+spec:
+  selector:
+    app: lenshxm-mariadb
+  ports:
+    - protocol: TCP
+      port: 3306
+      targetPort: 3306

@@ -1,0 +1,15 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: lenshxm-bench-erpnext-cx
+  namespace: lenshxm-amr
+spec:
+  entryPoints:
+    - web
+    - websecure
+  routes:
+    - match: Host(`lmnas.lmnaslens.com`)
+      kind: Rule
+      services:
+        - name: lenshxm-bench-erpnext
+          port: 8080

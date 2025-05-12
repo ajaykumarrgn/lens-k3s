@@ -1,0 +1,517 @@
+# # Default values for erpnext.
+# # This is a YAML-formatted file.
+# # Declare variables to be passed into your templates.
+
+# # Configure external database host
+# # <db-service-name>.<namespace>.svc.cluster.local
+dbHost: "lenshxm-mariadb.lenshxm-amr.svc.cluster.local"
+dbPort: 3306
+dbRootUser: "root"
+dbRootPassword: "admin"
+dbRds: false
+
+image:
+  repository: ghcr.io/lmnaslimited/lensdocker/lenshxm
+  tag: v14.57.0 
+  pullPolicy: IfNotPresent
+
+nginx:
+  replicaCount: 1
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 3
+    targetCPU: 75
+    targetMemory: 75
+  environment:
+    upstreamRealIPAddress: "127.0.0.1"
+    upstreamRealIPRecursive: "off"
+    upstreamRealIPHeader: "X-Forwarded-For"
+    frappeSiteNameHeader: "$host"
+  livenessProbe:
+    tcpSocket:
+      port: 8080
+    initialDelaySeconds: 5
+    periodSeconds: 10
+  readinessProbe:
+    tcpSocket:
+      port: 8080
+    initialDelaySeconds: 5
+    periodSeconds: 10
+  service:
+    type: ClusterIP
+    port: 8080
+  resources: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity:
+    nodeAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          preference:
+            matchExpressions:
+              - key: region
+                operator: In
+                values:
+                  - eur2
+        - weight: 50
+          preference:
+            matchExpressions:
+              - key: region
+                operator: In
+                values:
+                  - amr
+        - weight: 10
+          preference:
+            matchExpressions:
+              - key: region
+                operator: In
+                values:
+                  - eur1
+#   # Default topologySpreadConstraints (used if topologySpreadConstraints is not set)
+  defaultTopologySpread:
+    maxSkew: 1
+    topologyKey: kubernetes.io/hostname
+    whenUnsatisfiable: DoNotSchedule
+  envVars: []
+  initContainers: []
+  sidecars: []
+
+worker:
+  gunicorn:
+    replicaCount: 1
+    autoscaling:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 3
+      targetCPU: 75
+      targetMemory: 75
+    livenessProbe:
+      tcpSocket:
+        port: 8000
+      initialDelaySeconds: 5
+      periodSeconds: 10
+    readinessProbe:
+      tcpSocket:
+        port: 8000
+      initialDelaySeconds: 5
+      periodSeconds: 10
+    service:
+      type: ClusterIP
+      port: 8000
+    resources: {}
+    nodeSelector: {}
+    tolerations: []
+    affinity:
+      nodeAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+                - key: region
+                  operator: In
+                  values:
+                    - eur2
+          - weight: 50
+            preference:
+              matchExpressions:
+                - key: region
+                  operator: In
+                  values:
+                    - amr
+          - weight: 10
+            preference:
+              matchExpressions:
+                - key: region
+                  operator: In
+                  values:
+                    - eur1
+    args: []
+    envVars: []
+    initContainers: []
+    sidecars: []
+
+  default:
+    replicaCount: 1
+    autoscaling:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 3
+      targetCPU: 75
+      targetMemory: 75
+    resources: {}
+    nodeSelector: {}
+    tolerations: []
+    affinity:
+      nodeAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+                - key: region
+                  operator: In
+                  values:
+                    - eur2
+          - weight: 50
+            preference:
+              matchExpressions:
+                - key: region
+                  operator: In
+                  values:
+                    - amr
+          - weight: 10
+            preference:
+              matchExpressions:
+                - key: region
+                  operator: In
+                  values:
+                    - eur1
+    livenessProbe:
+      override: false
+      probe: {}
+    readinessProbe:
+      override: false
+      probe: {}
+    envVars: []
+    initContainers: []
+    sidecars: []
+
+  short:
+    replicaCount: 1
+    autoscaling:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 3
+      targetCPU: 75
+      targetMemory: 75
+    resources: {}
+    nodeSelector: {}
+    tolerations: []
+    affinity:
+      nodeAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+                - key: region
+                  operator: In
+                  values:
+                    - eur2
+          - weight: 50
+            preference:
+              matchExpressions:
+                - key: region
+                  operator: In
+                  values:
+                    - amr
+          - weight: 10
+            preference:
+              matchExpressions:
+                - key: region
+                  operator: In
+                  values:
+                    - eur1
+    livenessProbe:
+      override: false
+      probe: {}
+    readinessProbe:
+      override: false
+      probe: {}
+    envVars: []
+    initContainers: []
+    sidecars: []
+
+  long:
+    replicaCount: 1
+    autoscaling:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 3
+      targetCPU: 75
+      targetMemory: 75
+    resources: {}
+    nodeSelector: {}
+    tolerations: []
+    affinity:
+      nodeAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+                - key: region
+                  operator: In
+                  values:
+                    - eur2
+          - weight: 50
+            preference:
+              matchExpressions:
+                - key: region
+                  operator: In
+                  values:
+                    - amr
+          - weight: 10
+            preference:
+              matchExpressions:
+                - key: region
+                  operator: In
+                  values:
+                    - eur1
+    livenessProbe:
+      override: false
+      probe: {}
+    readinessProbe:
+      override: false
+      probe: {}
+    envVars: []
+    initContainers: []
+    sidecars: []
+
+  scheduler:
+    replicaCount: 1
+    resources: {}
+    nodeSelector: {}
+    tolerations: []
+    affinity:
+      nodeAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+                - key: region
+                  operator: In
+                  values:
+                    - eur2
+          - weight: 50
+            preference:
+              matchExpressions:
+                - key: region
+                  operator: In
+                  values:
+                    - amr
+          - weight: 10
+            preference:
+              matchExpressions:
+                - key: region
+                  operator: In
+                  values:
+                    - eur1
+    livenessProbe:
+      override: false
+      probe: {}
+    readinessProbe:
+      override: false
+      probe: {}
+    envVars: []
+    initContainers: []
+    sidecars: []
+    # Default topologySpreadConstraints (used if topologySpreadConstraints is not set)
+    defaultTopologySpread:
+      maxSkew: 1
+      topologyKey: kubernetes.io/hostname
+      whenUnsatisfiable: DoNotSchedule
+
+
+  healthProbe: |
+    exec:
+      command:
+        - bash
+        - -c
+        - echo "Ping backing services";
+        {{- if .Values.mariadb.enabled }}
+        {{- if eq .Values.mariadb.architecture "replication" }}
+        - wait-for-it {{ .Release.Name }}-mariadb-primary:{{ .Values.mariadb.primary.service.ports.mysql }} -t 1;
+        {{- else }}
+        - wait-for-it {{ .Release.Name }}-mariadb:{{ .Values.mariadb.primary.service.ports.mysql }} -t 1;
+        {{- end }}
+        {{- else if .Values.dbHost }}
+        - wait-for-it {{ .Values.dbHost }}:{{ .Values.mariadb.primary.service.ports.mysql }} -t 1;
+        {{- end }}
+        {{- if index .Values "redis-cache" "host" }}
+        - wait-for-it {{ .Release.Name }}-redis-cache-master:{{ index .Values "redis-cache" "master" "containerPorts" "redis" }} -t 1;
+        {{- else if index .Values "redis-cache" "host" }}
+        - wait-for-it {{ index .Values "redis-cache" "host" }} -t 1;
+        {{- end }}
+        {{- if index .Values "redis-queue" "host" }}
+        - wait-for-it {{ .Release.Name }}-redis-queue-master:{{ index .Values "redis-queue" "master" "containerPorts" "redis" }} -t 1;
+        {{- else if index .Values "redis-queue" "host" }}
+        - wait-for-it {{ index .Values "redis-queue" "host" }} -t 1;
+        {{- end }}
+        {{- if .Values.postgresql.host }}
+        - wait-for-it {{ .Values.postgresql.host }}:{{ .Values.postgresql.primary.service.ports.postgresql }} -t 1;
+        {{- else if .Values.postgresql.enabled }}
+        - wait-for-it {{ .Release.Name }}-postgresql:{{ .Values.postgresql.primary.service.ports.postgresql }} -t 1;
+        {{- end }}
+    initialDelaySeconds: 15
+    periodSeconds: 5
+
+socketio:
+  replicaCount: 1
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 3
+    targetCPU: 75
+    targetMemory: 75
+  livenessProbe:
+    tcpSocket:
+      port: 9000
+    initialDelaySeconds: 5
+    periodSeconds: 10
+  readinessProbe:
+    tcpSocket:
+      port: 9000
+    initialDelaySeconds: 5
+    periodSeconds: 10
+  resources: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity:
+    nodeAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          preference:
+            matchExpressions:
+              - key: region
+                operator: In
+                values:
+                  - eur2
+        - weight: 50
+          preference:
+            matchExpressions:
+              - key: region
+                operator: In
+                values:
+                  - amr
+        - weight: 10
+          preference:
+            matchExpressions:
+              - key: region
+                operator: In
+                values:
+                  - eur1
+  service:
+    type: ClusterIP
+    port: 9000
+  envVars: []
+  initContainers: []
+  sidecars: []
+
+persistence:
+  worker:
+    enabled: true
+    existingClaim: "lenshxm-site-pvc"
+
+jobs:
+  configure:
+    enabled: true
+    fixVolume: true
+    backoffLimit: 0
+    resources: {}
+    nodeSelector: {}
+    tolerations: []
+    affinity:
+      nodeAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+                - key: region
+                  operator: In
+                  values:
+                    - eur2
+          - weight: 50
+            preference:
+              matchExpressions:
+                - key: region
+                  operator: In
+                  values:
+                    - amr
+          - weight: 10
+            preference:
+              matchExpressions:
+                - key: region
+                  operator: In
+                  values:
+                    - eur1
+    envVars: []
+    command: []
+    args: []
+
+redis-cache:
+  enabled: true
+  architecture: standalone
+  auth:
+    enabled: false
+    sentinal: false
+  master:
+    containerPorts:
+      redis: 6379
+    persistence:
+      enabled: false
+  nodeSelector: {}
+  tolerations: []
+  affinity:
+    nodeAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          preference:
+            matchExpressions:
+              - key: region
+                operator: In
+                values:
+                  - eur2
+        - weight: 50
+          preference:
+            matchExpressions:
+              - key: region
+                operator: In
+                values:
+                  - amr
+        - weight: 10
+          preference:
+            matchExpressions:
+              - key: region
+                operator: In
+                values:
+                  - eur1
+
+redis-queue:
+  enabled: true
+  architecture: standalone
+  auth:
+    enabled: false
+    sentinal: false
+  master:
+    containerPorts:
+      redis: 6379
+    persistence:
+      enabled: false
+  nodeSelector: {}
+  tolerations: []
+  affinity:
+    nodeAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          preference:
+            matchExpressions:
+              - key: region
+                operator: In
+                values:
+                  - eur2
+        - weight: 50
+          preference:
+            matchExpressions:
+              - key: region
+                operator: In
+                values:
+                  - amr
+        - weight: 10
+          preference:
+            matchExpressions:
+              - key: region
+                operator: In
+                values:
+                  - eur1
+
+mariadb:
+  enabled: false
