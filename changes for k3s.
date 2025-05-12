@@ -1,0 +1,5 @@
+creating the one persistent volume of the nfs shared-disk full space storage.
+the maridb dirctly access  the pv with out the site storage restriction.
+the site has pv,pc in certion amount of storage.
+
+ingress route is addedd in to the creatsite job file.

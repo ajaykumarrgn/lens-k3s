@@ -1,0 +1,124 @@
+MANAGER_IP="10.132.0.25" "35.195.182.78"
+WORKER1_IP="10.132.0.25" "34.77.207.64"
+WORKER2_IP="10.132.0.27" "34.79.120.21"
+
+gcloud compute ssh --zone "europe-west1-b" "manager" --project "seismic-bucksaw-449405-k9"
+gcloud compute ssh --zone "europe-west1-b" "wk1" --project "seismic-bucksaw-449405-k9"
+gcloud compute ssh --zone "europe-west1-b" "wk2" --project "seismic-bucksaw-449405-k9"
+
+kube cluster setup
+
+curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="--disable=traefik" sh -
+sudo cat /var/lib/rancher/k3s/server/node-token
+hostname -I
+curl -sfL https://get.k3s.io | K3S_URL="https://<manager-ip>:6443" K3S_TOKEN="<node-token>" sh -
+sudo k3s kubectl get nodes -o wide
+mkdir -p $HOME/.kube
+sudo cp /etc/rancher/k3s/k3s.yaml $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+echo 'export KUBECONFIG=$HOME/.kube/config' >> ~/.bashrc
+source ~/.bashrc
+
+kubectl get nodes
+kubectl label node manager region=eur1
+kubectl label node wk1 region=eur2
+kubectl label node wk2 region=amr
+
+formating  the additional disk (shared-disk)
+
+lsblk
+mkfs.ext4 /dev/sdb
+mkdir -p /mnt/shared-disk
+sudo mount /dev/sdb /mnt/shared-disk
+sudo blkid /dev/sdb
+sudo nano /etc/fstab
+enter -- UUID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx /mnt/shared-disk ext4 defaults,nofail 0 2
+sudo mount -a
+
+
+nfs server setup with nfs-provisioner
+
+sudo apt install -y nfs-kernel-server
+sudo nano /etc/exports
+
+/mnt/shared-disk 10.132.0.25(rw,sync,no_subtree_check,no_root_squash) 10.132.0.27(rw,sync,no_subtree_check,no_root_squash) 10.132.0.26(rw,sync,no_subtree_check,no_root_squash)
+
+sudo exportfs -a 
+sudo systemctl restart nfs-server
+
+nfs common on worker nodes 
+
+sudo apt install -y nfs-common
+
+mkdir -p /mnt/shared-disk
+sudo mount 10.132.0.26:/mnt/shared-disk/ /mnt/shared-disk/
+df -h | grep shared-disk
+
+sudo nano /etc/fstab
+10.132.0.26:/mnt/shared-disk /mnt/shared-disk nfs defaults,_netdev 0 0
+
+deploy nfs-provisioner
+
+run as command
+ 
+helm repo add nfs-subdir-external-provisioner https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner/
+
+ helm install nfs-subdir-external-provisioner nfs-subdir-external-provisioner/nfs-subdir-external-provisioner \
+  -f nfs-custom-values.yaml
+ 
+install traefik 
+
+helm repo add traefik https://traefik.github.io/charts
+helm repo update
+
+kubectl apply -f traefik-pvc.yaml
+
+sudo touch /mnt/shared-disk/default-traefik-pvc-pvc-2420a7d5-e169-4220-8e9d-c48711ac1872/acme.json
+sudo chmod 600 /mnt/shared-disk/default-traefik-pvc-pvc-2420a7d5-e169-4220-8e9d-c48711ac1872/acme.json
+sudo chown 65532:65532 /mnt/shared-disk/default-traefik-pvc-pvc-2420a7d5-e169-4220-8e9d-c48711ac1872/acme.json
+
+run as command 
+
+helm repo add frappe https://helm.erpnext.com
+
+helm install traefik traefik/traefik \
+  --namespace default \
+  --create-namespace \
+  --values traefik.yaml
+  
+kubectl get pods
+
+
+lens sites deploy steps
+
+add the repolink to clone
+
+curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+kubectl create namespace lenshxm
+kubectl apply -n lenshxm -f lenshxm-mariadb.yaml
+sudo chown -R 999:999 /mnt/shared-disk/<your-mariadb-pvc-dir>
+
+kubectl get pods -n lenshxm -o wide 
+
+helm repo add frappe https://helm.erpnext.com
+
+helm install lenshxm-bench -n lenshxm \
+  -f lenshxm-custom-values.yaml \
+  frappe/erpnext
+
+kubectl get pods -n lenshxm
+kubectl apply -n lenshxm -f lenshxm_create-site-job.yaml
+kubectl apply -n lenshxm -f demo-ingressroute.yaml
+
+
+
+
+
+  
+
+
+
+
+
+
